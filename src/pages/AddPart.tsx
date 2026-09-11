@@ -14,7 +14,6 @@ export default function AddPart() {
     category: "",
     quantity: 0,
     minStock: 0,
-    location: "",
     supplier: "",
     image: "",
   });
@@ -31,152 +30,157 @@ export default function AddPart() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Add Spare Part</h1>
+    <div className="page-shell">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Catalog</p>
+          <h1 className="page-title">Add Spare Part</h1>
+        </div>
+      </header>
 
-      <form onSubmit={submit}>
-        <input
-          placeholder="Machine"
-          value={form.machine}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              machine: e.target.value,
-            }))
-          }
-        />
+      <div className="form-panel panel">
+        <form onSubmit={submit} className="form-grid">
+          <div className="field-group">
+            <label htmlFor="machine">Machine</label>
+            <input
+              id="machine"
+              placeholder="Machine"
+              value={form.machine}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  machine: e.target.value,
+                }))
+              }
+            />
+          </div>
 
-        <br />
-        <br />
+          <div className="field-group">
+            <label htmlFor="machineCode">Machine Code</label>
+            <input
+              id="machineCode"
+              placeholder="Machine Code"
+              value={form.machineCode}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  machineCode: e.target.value,
+                }))
+              }
+            />
+          </div>
 
-        <input
-          placeholder="Machine Code"
-          value={form.machineCode}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              machineCode: e.target.value,
-            }))
-          }
-        />
+          <div className="field-group full-width">
+            <label htmlFor="partNumber">Part Number</label>
+            <input
+              id="partNumber"
+              placeholder="Part Number"
+              value={form.partNumber}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  partNumber: e.target.value,
+                }))
+              }
+            />
+          </div>
 
-        <br />
-        <br />
+          <div className="field-group full-width">
+            <label htmlFor="partName">Part Name</label>
+            <input
+              id="partName"
+              placeholder="Part Name"
+              value={form.partName}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  partName: e.target.value,
+                }))
+              }
+            />
+          </div>
 
-        <ImageUploader
-          onImageUpload={(image) =>
-            setForm((prev) => ({
-              ...prev,
-              image,
-            }))
-          }
-        />
+          <div className="field-group">
+            <label htmlFor="category">Category</label>
+            <input
+              id="category"
+              placeholder="Category"
+              value={form.category}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  category: e.target.value,
+                }))
+              }
+            />
+          </div>
 
-        <br />
-        <br />
+          <div className="field-group">
+            <label htmlFor="supplier">Supplier</label>
+            <input
+              id="supplier"
+              placeholder="Supplier"
+              value={form.supplier}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  supplier: e.target.value,
+                }))
+              }
+            />
+          </div>
 
-        <input
-          placeholder="Part Number"
-          value={form.partNumber}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              partNumber: e.target.value,
-            }))
-          }
-        />
+          <div className="field-group">
+            <label htmlFor="quantity">Quantity</label>
+            <input
+              id="quantity"
+              type="number"
+              placeholder="Quantity"
+              value={form.quantity}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  quantity: Number(e.target.value),
+                }))
+              }
+            />
+          </div>
 
-        <br />
-        <br />
+          <div className="field-group">
+            <label htmlFor="minStock">Minimum Stock</label>
+            <input
+              id="minStock"
+              type="number"
+              placeholder="Minimum Stock"
+              value={form.minStock}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  minStock: Number(e.target.value),
+                }))
+              }
+            />
+          </div>
 
-        <input
-          placeholder="Part Name"
-          value={form.partName}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              partName: e.target.value,
-            }))
-          }
-        />
+          <div className="field-group full-width">
+            <label>Image</label>
+            <ImageUploader
+              onImageUpload={(image) =>
+                setForm((prev) => ({
+                  ...prev,
+                  image,
+                }))
+              }
+            />
+          </div>
 
-        <br />
-        <br />
-
-        <input
-          placeholder="Category"
-          value={form.category}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              category: e.target.value,
-            }))
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          type="number"
-          placeholder="Quantity"
-          value={form.quantity}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              quantity: Number(e.target.value),
-            }))
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          type="number"
-          placeholder="Minimum Stock"
-          value={form.minStock}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              minStock: Number(e.target.value),
-            }))
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          placeholder="Location"
-          value={form.location}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              location: e.target.value,
-            }))
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          placeholder="Supplier"
-          value={form.supplier}
-          onChange={(e) =>
-            setForm((prev) => ({
-              ...prev,
-              supplier: e.target.value,
-            }))
-          }
-        />
-
-        <br />
-        <br />
-
-        <button type="submit">Save Spare Part</button>
-      </form>
+          <div className="field-group full-width form-actions">
+            <button type="submit" className="primary-button">
+              Save Spare Part
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

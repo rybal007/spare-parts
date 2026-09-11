@@ -7,7 +7,6 @@ export interface SparePart {
   category: string;
   quantity: number;
   minStock: number;
-  location: string;
   supplier: string;
   image: string;
 }

@@ -1,11 +1,28 @@
+import { useState } from "react";
+
 import { useSparePartStore } from "../store/sparePartStore";
+
+type AlertKey = "critical" | "watch" | "healthy" | null;
 
 export default function Dashboard() {
   const parts = useSparePartStore((s) => s.parts);
+  const [selectedAlert, setSelectedAlert] = useState<AlertKey>("critical");
 
-  const lowStock = parts.filter((p) => p.quantity > 0 && p.quantity <= p.minStock).length;
-  const outOfStock = parts.filter((p) => p.quantity === 0).length;
+  const criticalItems = parts.filter((p) => p.quantity === 0);
+  const watchItems = parts.filter((p) => p.quantity > 0 && p.quantity <= p.minStock);
+  const healthyItems = parts.filter((p) => p.quantity > p.minStock);
+  const lowStock = watchItems.length;
+  const outOfStock = criticalItems.length;
   const totalQuantity = parts.reduce((sum, part) => sum + part.quantity, 0);
+
+  const selectedItems =
+    selectedAlert === "critical"
+      ? criticalItems
+      : selectedAlert === "watch"
+        ? watchItems
+        : selectedAlert === "healthy"
+          ? healthyItems
+          : [];
 
   return (
     <div className="page-shell">
@@ -45,30 +62,55 @@ export default function Dashboard() {
         </div>
 
         <div className="summary-list">
-          <div className="summary-item">
+          <button
+            type="button"
+            className={`summary-item ${selectedAlert === "critical" ? "selected" : ""}`}
+            onClick={() => setSelectedAlert("critical")}
+          >
             <div>
               <span className="alert-dot danger" />
               <strong>Critical items</strong>
             </div>
             <span>{outOfStock} parts require immediate replenishment</span>
-          </div>
+          </button>
 
-          <div className="summary-item">
+          <button
+            type="button"
+            className={`summary-item ${selectedAlert === "watch" ? "selected" : ""}`}
+            onClick={() => setSelectedAlert("watch")}
+          >
             <div>
               <span className="alert-dot warning" />
               <strong>Watch list</strong>
             </div>
             <span>{lowStock} items are at or below minimum stock</span>
-          </div>
+          </button>
 
-          <div className="summary-item">
+          <button
+            type="button"
+            className={`summary-item ${selectedAlert === "healthy" ? "selected" : ""}`}
+            onClick={() => setSelectedAlert("healthy")}
+          >
             <div>
               <span className="alert-dot success" />
               <strong>Healthy stock</strong>
             </div>
-            <span>{parts.length - (lowStock + outOfStock)} items are in a good range</span>
-          </div>
+            <span>{healthyItems.length} items are in a good range</span>
+          </button>
         </div>
+
+        {selectedItems.length > 0 && (
+          <div className="alert-details">
+            <h3>{selectedAlert === "critical" ? "Critical items" : selectedAlert === "watch" ? "Watch list" : "Healthy stock"}</h3>
+            <ul>
+              {selectedItems.map((part) => (
+                <li key={part.id}>
+                  <strong>{part.partName}</strong> — {part.machineCode || part.machine || "No machine"} ({part.quantity} in stock)
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
     </div>
   );
