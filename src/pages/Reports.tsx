@@ -49,6 +49,7 @@ export default function Reports() {
             <thead>
               <tr>
                 <th>Machine</th>
+                <th>Machine Code</th>
                 <th>Part Number</th>
                 <th>Part Name</th>
                 <th>Quantity</th>
@@ -62,6 +63,7 @@ export default function Reports() {
                 .filter((part) => part.quantity === 0 || part.quantity <= part.minStock)
                 .map((part) => (
                   <tr key={part.id}>
+                    <td>{part.machine || part.machineCode}</td>
                     <td>{part.machineCode}</td>
                     <td>{part.partNumber}</td>
                     <td>{part.partName}</td>

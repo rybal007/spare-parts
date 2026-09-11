@@ -1,5 +1,6 @@
 export interface SparePart {
   id: string;
+  machine: string;
   machineCode: string;
   partNumber: string;
   partName: string;

@@ -7,6 +7,7 @@ export default function AddPart() {
   const addPart = useSparePartStore((s) => s.addPart);
 
   const [form, setForm] = useState({
+    machine: "",
     machineCode: "",
     partNumber: "",
     partName: "",
@@ -34,6 +35,20 @@ export default function AddPart() {
       <h1>Add Spare Part</h1>
 
       <form onSubmit={submit}>
+        <input
+          placeholder="Machine"
+          value={form.machine}
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              machine: e.target.value,
+            }))
+          }
+        />
+
+        <br />
+        <br />
+
         <input
           placeholder="Machine Code"
           value={form.machineCode}

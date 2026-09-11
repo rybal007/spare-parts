@@ -62,6 +62,7 @@ export default function Inventory() {
           <thead>
             <tr>
               <th>Machine</th>
+              <th>Machine Code</th>
               <th>Part Number</th>
               <th>Part Name</th>
               <th>Quantity</th>
@@ -78,6 +79,22 @@ export default function Inventory() {
 
               return (
                 <tr key={part.id}>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        className="table-input"
+                        value={draft.machine || draft.machineCode}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            machine: e.target.value,
+                          })
+                        }
+                      />
+                    ) : (
+                      part.machine || part.machineCode
+                    )}
+                  </td>
                   <td>
                     {isEditing ? (
                       <input

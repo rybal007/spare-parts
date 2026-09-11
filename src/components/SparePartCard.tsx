@@ -46,7 +46,10 @@ export default function SparePartCard({
 
       <div className="part-meta">
         <div>
-          <strong>Machine:</strong> {part.machineCode}
+          <strong>Machine:</strong> {part.machine || part.machineCode}
+        </div>
+        <div>
+          <strong>Machine Code:</strong> {part.machineCode}
         </div>
         <div>
           <strong>Part No:</strong> {part.partNumber}

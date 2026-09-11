@@ -10,11 +10,16 @@ export default function SpareParts() {
 
   const [search, setSearch] = useState("");
 
-  const filtered = parts.filter(
-    (part) =>
-      part.machineCode.toLowerCase().includes(search.toLowerCase()) ||
-      part.partName.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = parts.filter((part) => {
+    const query = search.toLowerCase();
+
+    return (
+      (part.machine || "").toLowerCase().includes(query) ||
+      (part.machineCode || "").toLowerCase().includes(query) ||
+      (part.partNumber || "").toLowerCase().includes(query) ||
+      (part.partName || "").toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="page-shell">
