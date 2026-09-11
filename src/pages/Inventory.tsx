@@ -1,7 +1,14 @@
+import { useState } from "react";
+
 import { useSparePartStore } from "../store/sparePartStore";
+import type { SparePart } from "../types/SparePart";
 
 export default function Inventory() {
   const parts = useSparePartStore((state) => state.parts);
+  const updatePart = useSparePartStore((state) => state.updatePart);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<SparePart | null>(null);
 
   const getStatus = (quantity: number, minStock: number) => {
     if (quantity === 0) {
@@ -24,60 +31,179 @@ export default function Inventory() {
     };
   };
 
+  const startEditing = (part: SparePart) => {
+    setEditingId(part.id);
+    setDraft({ ...part });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setDraft(null);
+  };
+
+  const saveEditing = () => {
+    if (!draft) return;
+
+    updatePart(draft);
+    cancelEditing();
+  };
+
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Inventory Monitoring</h1>
+    <div className="page-shell">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Live monitoring</p>
+          <h1 className="page-title">Inventory Monitoring</h1>
+        </div>
+      </header>
 
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "20px",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={thStyle}>Machine</th>
-            <th style={thStyle}>Part Number</th>
-            <th style={thStyle}>Part Name</th>
-            <th style={thStyle}>Quantity</th>
-            <th style={thStyle}>Minimum</th>
-            <th style={thStyle}>Status</th>
-          </tr>
-        </thead>
+      <div className="data-table-wrapper">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Machine</th>
+              <th>Part Number</th>
+              <th>Part Name</th>
+              <th>Quantity</th>
+              <th>Minimum</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {parts.map((part) => {
-            const status = getStatus(part.quantity, part.minStock);
+          <tbody>
+            {parts.map((part) => {
+              const status = getStatus(part.quantity, part.minStock);
+              const isEditing = editingId === part.id && draft;
 
-            return (
-              <tr key={part.id}>
-                <td style={tdStyle}>{part.machineCode}</td>
-                <td style={tdStyle}>{part.partNumber}</td>
-                <td style={tdStyle}>{part.partName}</td>
-                <td style={tdStyle}>{part.quantity}</td>
-                <td style={tdStyle}>{part.minStock}</td>
-                <td style={{ ...tdStyle, color: status.color, fontWeight: 700 }}>
-                  {status.text}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              return (
+                <tr key={part.id}>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        className="table-input"
+                        value={draft.machineCode}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            machineCode: e.target.value,
+                          })
+                        }
+                      />
+                    ) : (
+                      part.machineCode
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        className="table-input"
+                        value={draft.partNumber}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            partNumber: e.target.value,
+                          })
+                        }
+                      />
+                    ) : (
+                      part.partNumber
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        className="table-input"
+                        value={draft.partName}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            partName: e.target.value,
+                          })
+                        }
+                      />
+                    ) : (
+                      part.partName
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        className="table-input"
+                        type="number"
+                        min="0"
+                        value={draft.quantity}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            quantity: Number(e.target.value),
+                          })
+                        }
+                      />
+                    ) : (
+                      part.quantity
+                    )}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        className="table-input"
+                        type="number"
+                        min="0"
+                        value={draft.minStock}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            minStock: Number(e.target.value),
+                          })
+                        }
+                      />
+                    ) : (
+                      part.minStock
+                    )}
+                  </td>
+                  <td>
+                    <span
+                      className="status-text"
+                      style={{ color: status.color }}
+                    >
+                      {status.text}
+                    </span>
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="primary-button small-button"
+                          onClick={saveEditing}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-button small-button"
+                          onClick={cancelEditing}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="secondary-button small-button"
+                        onClick={() => startEditing(part)}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  border: "1px solid #ddd",
-  padding: "12px",
-  backgroundColor: "#2563eb",
-  color: "white",
-  textAlign: "left",
-};
-
-const tdStyle: React.CSSProperties = {
-  border: "1px solid #ddd",
-  padding: "10px",
-};

@@ -10,27 +10,14 @@ export default function SearchBar({
   setSearch,
 }: SearchBarProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        marginBottom: "20px",
-      }}
-    >
-      <Search size={20} />
+    <div className="search-wrap">
+      <Search size={18} />
 
       <input
         type="text"
         placeholder="Search spare parts..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: "10px",
-          width: "350px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-        }}
       />
     </div>
   );

@@ -10,15 +10,19 @@ import Reports from "./pages/Reports";
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
+      <div className="app-shell">
+        <Navbar />
 
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/parts" element={<SpareParts />} />
-        <Route path="/add" element={<AddPart />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/reports" element={<Reports />} />
-      </Routes>
+        <main className="page-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/parts" element={<SpareParts />} />
+            <Route path="/add" element={<AddPart />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/reports" element={<Reports />} />
+          </Routes>
+        </main>
+      </div>
     </BrowserRouter>
   );
 }

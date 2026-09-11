@@ -33,100 +33,54 @@ export default function SparePartCard({
   const status = getStatus();
 
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "10px",
-        padding: "15px",
-        width: "300px",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-      }}
-    >
+    <article className="part-card">
       {part.image ? (
-        <img
-          src={part.image}
-          alt={part.partName}
-          style={{
-            width: "100%",
-            height: "150px",
-            objectFit: "cover",
-            borderRadius: "8px",
-            background: "#f3f4f6",
-            marginBottom: "10px",
-          }}
-        />
+        <img src={part.image} alt={part.partName} />
       ) : (
-        <div
-          style={{
-            width: "100%",
-            height: "150px",
-            background: "#f3f4f6",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "8px",
-            marginBottom: "10px",
-            color: "#6b7280",
-          }}
-        >
-          No Image
-        </div>
+        <div className="image-placeholder">No image</div>
       )}
 
-      <h3>{part.partName}</h3>
+      <div>
+        <h3>{part.partName}</h3>
+      </div>
 
-      <p>
-        <strong>Machine:</strong> {part.machineCode}
-      </p>
-
-      <p>
-        <strong>Part No:</strong> {part.partNumber}
-      </p>
-
-      <p>
-        <strong>Category:</strong> {part.category}
-      </p>
-
-      <p>
-        <strong>Location:</strong> {part.location}
-      </p>
-
-      <p>
-        <strong>Supplier:</strong> {part.supplier}
-      </p>
-
-      <p>
-        <strong>Quantity:</strong> {part.quantity}
-      </p>
+      <div className="part-meta">
+        <div>
+          <strong>Machine:</strong> {part.machineCode}
+        </div>
+        <div>
+          <strong>Part No:</strong> {part.partNumber}
+        </div>
+        <div>
+          <strong>Category:</strong> {part.category}
+        </div>
+        <div>
+          <strong>Location:</strong> {part.location}
+        </div>
+        <div>
+          <strong>Supplier:</strong> {part.supplier}
+        </div>
+        <div>
+          <strong>Quantity:</strong> {part.quantity}
+        </div>
+      </div>
 
       <span
-        style={{
-          backgroundColor: status.color,
-          color: "white",
-          padding: "5px 10px",
-          borderRadius: "5px",
-          display: "inline-block",
-          marginBottom: "10px",
-        }}
+        className="badge"
+        style={{ backgroundColor: status.color }}
       >
         {status.label}
       </span>
 
-      <br />
-
-      <button
-        onClick={() => onDelete(part.id)}
-        style={{
-          backgroundColor: "#dc2626",
-          color: "white",
-          border: "none",
-          padding: "10px",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Delete
-      </button>
-    </div>
+      <div className="card-actions">
+        <button
+          type="button"
+          className="danger-button"
+          onClick={() => onDelete(part.id)}
+        >
+          Delete
+        </button>
+      </div>
+    </article>
   );
 }

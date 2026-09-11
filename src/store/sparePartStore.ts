@@ -11,6 +11,7 @@ interface Store {
   parts: SparePart[];
   addPart: (part: SparePart) => void;
   deletePart: (id: string) => void;
+  updatePart: (part: SparePart) => void;
 }
 
 export const useSparePartStore = create<Store>((set) => ({
@@ -30,6 +31,21 @@ export const useSparePartStore = create<Store>((set) => ({
     set((state) => ({
       parts: state.parts.filter(
         (part) => part.id !== id
+      ),
+    }));
+  },
+
+  updatePart: (part) => {
+    const existing = loadParts();
+    const updatedParts = existing.map((item) =>
+      item.id === part.id ? part : item
+    );
+
+    localStorage.setItem("spareParts", JSON.stringify(updatedParts));
+
+    set((state) => ({
+      parts: state.parts.map((item) =>
+        item.id === part.id ? part : item
       ),
     }));
   },

@@ -17,31 +17,32 @@ export default function SpareParts() {
   );
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Spare Parts List</h1>
+    <div className="page-shell">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Catalog</p>
+          <h1 className="page-title">Spare Parts List</h1>
+        </div>
+      </header>
 
-      <SearchBar search={search} setSearch={setSearch} />
+      <div className="page-toolbar">
+        <SearchBar search={search} setSearch={setSearch} />
+        <span className="status-pill">{filtered.length} found</span>
+      </div>
 
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-        {filtered.length === 0 ? (
-          <p>No spare parts found.</p>
-        ) : (
-          filtered.map((part) => (
+      {filtered.length === 0 ? (
+        <div className="empty-state">No spare parts found for your current search.</div>
+      ) : (
+        <div className="content-grid">
+          {filtered.map((part) => (
             <SparePartCard
               key={part.id}
               part={part}
               onDelete={deletePart}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
