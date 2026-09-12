@@ -21,9 +21,13 @@ export default function AddPart() {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const now = new Date().toISOString();
+
     addPart({
       id: crypto.randomUUID(),
       ...form,
+      createdAt: now,
+      updatedAt: now,
     });
 
     alert("Part Added");

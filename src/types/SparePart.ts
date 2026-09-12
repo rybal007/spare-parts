@@ -9,4 +9,6 @@ export interface SparePart {
   minStock: number;
   supplier: string;
   image: string;
+  createdAt: string;
+  updatedAt: string;
 }

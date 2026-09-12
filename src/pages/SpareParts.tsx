@@ -4,16 +4,12 @@ import { useSparePartStore } from "../store/sparePartStore";
 import SparePartCard from "../components/SparePartCard";
 import SearchBar from "../components/SearchBar";
 
-type SortBy = "machineCode" | "quantity";
-type SortDirection = "asc" | "desc";
-
 export default function SpareParts() {
   const parts = useSparePartStore((s) => s.parts);
   const deletePart = useSparePartStore((s) => s.deletePart);
 
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortBy>("machineCode");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const filtered = useMemo(() => {
     const query = search.toLowerCase();
@@ -28,20 +24,33 @@ export default function SpareParts() {
     });
   }, [parts, search]);
 
-  const sortedParts = useMemo(() => {
-    const sorted = [...filtered];
+  const groupedParts = useMemo(() => {
+    const groups = new Map<
+      string,
+      { machineType: string; items: typeof filtered }
+    >();
 
-    sorted.sort((a, b) => {
-      const comparison =
-        sortBy === "machineCode"
-          ? (a.machineCode || "").localeCompare(b.machineCode || "")
-          : (a.quantity ?? 0) - (b.quantity ?? 0);
+    filtered.forEach((part) => {
+      const key = part.machineCode || "Unassigned";
+      const existing = groups.get(key) ?? { machineType: part.machine || key, items: [] };
 
-      return sortDirection === "asc" ? comparison : -comparison;
+      groups.set(key, {
+        machineType: existing.machineType || part.machine || key,
+        items: [...existing.items, part],
+      });
     });
 
-    return sorted;
-  }, [filtered, sortBy, sortDirection]);
+    return Array.from(groups.entries())
+      .map(([machineCode, group]) => [machineCode, group.machineType, group.items] as const)
+      .sort(([a], [b]) => a.localeCompare(b));
+  }, [filtered]);
+
+  const toggleGroup = (machineCode: string) => {
+    setOpenGroups((current) => ({
+      ...current,
+      [machineCode]: !(current[machineCode] ?? false),
+    }));
+  };
 
   return (
     <div className="page-shell">
@@ -54,48 +63,51 @@ export default function SpareParts() {
 
       <div className="page-toolbar">
         <SearchBar search={search} setSearch={setSearch} />
-
-        <div className="sort-controls">
-          <label htmlFor="sortBy" className="sort-label">
-            Sort by
-          </label>
-          <select
-            id="sortBy"
-            className="sort-select"
-            value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as SortBy)}
-          >
-            <option value="machineCode">Machine code</option>
-            <option value="quantity">No. of stocks</option>
-          </select>
-
-          <button
-            type="button"
-            className="secondary-button small-button"
-            onClick={() =>
-              setSortDirection((current) =>
-                current === "asc" ? "desc" : "asc"
-              )
-            }
-          >
-            {sortDirection === "asc" ? "Ascending" : "Descending"}
-          </button>
-        </div>
-
         <span className="status-pill">{filtered.length} found</span>
       </div>
 
-      {sortedParts.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="empty-state">No spare parts found for your current search.</div>
       ) : (
-        <div className="content-grid">
-          {sortedParts.map((part) => (
-            <SparePartCard
-              key={part.id}
-              part={part}
-              onDelete={deletePart}
-            />
-          ))}
+        <div className="folder-groups">
+          {groupedParts.map(([machineCode, machineType, items]) => {
+            const isOpen = openGroups[machineCode] ?? false;
+            const headerText = machineType && machineType !== machineCode
+              ? `${machineType} (${machineCode})`
+              : machineCode;
+
+            return (
+              <section key={machineCode} className="machine-group">
+                <button
+                  type="button"
+                  className="folder-header"
+                  onClick={() => toggleGroup(machineCode)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="folder-tab">Folder</span>
+                  <h2>{headerText}</h2>
+                  <span className="folder-meta">
+                    <span className="folder-count">{items.length}</span>
+                    <span className="folder-chevron">
+                      {isOpen ? "▾" : "▸"}
+                    </span>
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="content-grid">
+                    {items.map((part) => (
+                      <SparePartCard
+                        key={part.id}
+                        part={part}
+                        onDelete={deletePart}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
         </div>
       )}
     </div>

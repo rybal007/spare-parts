@@ -44,9 +44,18 @@ export default function Inventory() {
   const saveEditing = () => {
     if (!draft) return;
 
-    updatePart(draft);
+    updatePart({
+      ...draft,
+      updatedAt: new Date().toISOString(),
+    });
     cancelEditing();
   };
+
+  const sortedParts = [...parts].sort((a, b) => {
+    const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime();
+    const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime();
+    return bTime - aTime;
+  });
 
   return (
     <div className="page-shell">
@@ -67,15 +76,22 @@ export default function Inventory() {
               <th>Part Name</th>
               <th>Quantity</th>
               <th>Minimum</th>
+              <th>Date</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {parts.map((part) => {
+            {sortedParts.map((part) => {
               const status = getStatus(part.quantity, part.minStock);
               const isEditing = editingId === part.id && draft;
+              const displayDate = new Date(
+                part.updatedAt || part.createdAt
+              ).toLocaleString("en-US", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              });
 
               return (
                 <tr key={part.id}>
@@ -179,6 +195,7 @@ export default function Inventory() {
                       part.minStock
                     )}
                   </td>
+                  <td>{displayDate}</td>
                   <td>
                     <span
                       className="status-text"
