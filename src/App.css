@@ -387,6 +387,7 @@
 .folder-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   width: 100%;
   padding: 16px 22px 14px;
@@ -397,11 +398,50 @@
   cursor: pointer;
 }
 
+.folder-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
 .folder-header h2 {
   margin: 0;
   font-size: 1.05rem;
   color: #0f172a;
-  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.folder-header-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.folder-machine-name {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.folder-machine-code {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  color: #1d4ed8;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.folder-machine-left {
+  white-space: nowrap;
 }
 
 .folder-tab {
@@ -500,15 +540,42 @@
   color: #475569;
 }
 
+.part-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .part-meta strong {
   color: #0f172a;
+}
+
+.meta-label {
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.machine-code-value {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #e0f2fe;
+  border: 1px solid rgba(14, 116, 144, 0.25);
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: flex-start;
   min-width: 110px;
+  margin-top: auto;
   padding: 0.45rem 0.7rem;
   border-radius: 999px;
   color: white;
@@ -522,7 +589,6 @@
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
-  margin-top: auto;
 }
 
 .card-edit-form {

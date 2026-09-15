@@ -135,8 +135,9 @@ export default function SparePartCard({
             <div>
               <strong>Machine:</strong> {part.machine || part.machineCode}
             </div>
-            <div>
-              <strong>Machine Code:</strong> {part.machineCode}
+            <div className="part-meta-row">
+              <strong className="meta-label">Machine Code:</strong>
+              <span className="machine-code-value">{part.machineCode}</span>
             </div>
             <div>
               <strong>Part No:</strong> {part.partNumber}

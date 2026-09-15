@@ -72,7 +72,8 @@ export default function SpareParts() {
         <div className="folder-groups">
           {groupedParts.map(([machineCode, machineType, items]) => {
             const isOpen = openGroups[machineCode] ?? false;
-            const headerText = machineType && machineType !== machineCode
+            const showMachineName = machineType && machineType !== machineCode;
+            const headerText = showMachineName
               ? `${machineType} (${machineCode})`
               : machineCode;
 
@@ -84,8 +85,16 @@ export default function SpareParts() {
                   onClick={() => toggleGroup(machineCode)}
                   aria-expanded={isOpen}
                 >
-                  <span className="folder-tab">Folder</span>
-                  <h2>{headerText}</h2>
+                  <div className="folder-title-wrap">
+                    <span className="folder-machine-code folder-machine-left">{machineCode}</span>
+                    <h2 className={showMachineName ? "folder-header-title" : "folder-header-title folder-header-single"}>
+                      {showMachineName ? (
+                        <span className="folder-machine-name">{machineType}</span>
+                      ) : (
+                        null
+                      )}
+                    </h2>
+                  </div>
                   <span className="folder-meta">
                     <span className="folder-count">{items.length}</span>
                     <span className="folder-chevron">
