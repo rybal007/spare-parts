@@ -5,13 +5,15 @@ import {
   loadParts,
   addPartToStorage,
   deletePartFromStorage,
+  updatePartInStorage,
 } from "../services/localStorageService";
 
 interface Store {
   parts: SparePart[];
-  addPart: (part: SparePart) => void;
-  deletePart: (id: string) => void;
-  updatePart: (part: SparePart) => void;
+  initialize: () => Promise<void>;
+  addPart: (part: SparePart) => Promise<void>;
+  deletePart: (id: string) => Promise<void>;
+  updatePart: (part: SparePart) => Promise<void>;
 }
 
 const normalizePart = (part: SparePart): SparePart => ({
@@ -24,36 +26,37 @@ const normalizeParts = (parts: SparePart[]): SparePart[] =>
   parts.map((part) => normalizePart(part));
 
 export const useSparePartStore = create<Store>((set) => ({
-  parts: normalizeParts(loadParts()),
+  parts: [],
 
-  addPart: (part) => {
+  initialize: async () => {
+    const storedParts = normalizeParts(await loadParts());
+    set({ parts: storedParts });
+  },
+
+  addPart: async (part) => {
     const normalizedPart = normalizePart(part);
-    addPartToStorage(normalizedPart);
+    await addPartToStorage(normalizedPart);
 
     set((state) => ({
       parts: [...state.parts, normalizedPart],
     }));
   },
 
-  deletePart: (id) => {
-    deletePartFromStorage(id);
+  deletePart: async (id) => {
+    await deletePartFromStorage(id);
 
     set((state) => ({
       parts: state.parts.filter((part) => part.id !== id),
     }));
   },
 
-  updatePart: (part) => {
+  updatePart: async (part) => {
     const updatedPart = normalizePart({
       ...part,
       updatedAt: new Date().toISOString(),
     });
-    const existing = loadParts();
-    const updatedParts = existing.map((item) =>
-      item.id === updatedPart.id ? updatedPart : item
-    );
 
-    localStorage.setItem("spareParts", JSON.stringify(updatedParts));
+    await updatePartInStorage(updatedPart);
 
     set((state) => ({
       parts: state.parts.map((item) =>
@@ -62,3 +65,5 @@ export const useSparePartStore = create<Store>((set) => ({
     }));
   },
 }));
+
+void useSparePartStore.getState().initialize();

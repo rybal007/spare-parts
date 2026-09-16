@@ -73,9 +73,6 @@ export default function SpareParts() {
           {groupedParts.map(([machineCode, machineType, items]) => {
             const isOpen = openGroups[machineCode] ?? false;
             const showMachineName = machineType && machineType !== machineCode;
-            const headerText = showMachineName
-              ? `${machineType} (${machineCode})`
-              : machineCode;
 
             return (
               <section key={machineCode} className="machine-group">
