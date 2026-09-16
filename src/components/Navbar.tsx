@@ -63,7 +63,7 @@ export default function Navbar() {
           <div className="brand-mark">SP</div>
           <div>
             <div className="brand-name">SpareParts</div>
-            <div className="brand-subtitle">Operations Suite</div>
+            <div className="brand-subtitle">assembly maint</div>
           </div>
         </div>
 

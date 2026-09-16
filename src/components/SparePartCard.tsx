@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useSparePartStore } from "../store/sparePartStore";
 import ImageUploader from "./ImageUploader";
 import type { SparePart } from "../types/SparePart";
+import { authorizeProtectedAction } from "../services/actionAuthorization";
 
 interface SparePartCardProps {
   part: SparePart;
@@ -40,7 +41,9 @@ export default function SparePartCard({
 
   const status = getStatus();
 
-  const startEditing = () => {
+  const startEditing = async () => {
+    if (!(await authorizeProtectedAction("edit"))) return;
+
     setDraft({ ...part });
     setIsEditing(true);
   };
@@ -185,14 +188,18 @@ export default function SparePartCard({
             <button
               type="button"
               className="secondary-button small-button"
-              onClick={startEditing}
+              onClick={() => void startEditing()}
             >
               Edit
             </button>
             <button
               type="button"
               className="danger-button small-button"
-              onClick={() => onDelete(part.id)}
+              onClick={async () => {
+                if (await authorizeProtectedAction("delete")) {
+                  void onDelete(part.id);
+                }
+              }}
             >
               Delete
             </button>

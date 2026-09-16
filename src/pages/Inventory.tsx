@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useSparePartStore } from "../store/sparePartStore";
 import type { SparePart } from "../types/SparePart";
+import { authorizeProtectedAction } from "../services/actionAuthorization";
 
 export default function Inventory() {
   const parts = useSparePartStore((state) => state.parts);
@@ -31,7 +32,9 @@ export default function Inventory() {
     };
   };
 
-  const startEditing = (part: SparePart) => {
+  const startEditing = async (part: SparePart) => {
+    if (!(await authorizeProtectedAction("edit"))) return;
+
     setEditingId(part.id);
     setDraft({ ...part });
   };
@@ -226,7 +229,7 @@ export default function Inventory() {
                       <button
                         type="button"
                         className="secondary-button small-button"
-                        onClick={() => startEditing(part)}
+                        onClick={() => void startEditing(part)}
                       >
                         Edit
                       </button>
