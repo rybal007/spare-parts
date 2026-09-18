@@ -81,6 +81,9 @@
 }
 
 .settings-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.7rem 1rem;
   border: 1px solid rgba(96, 165, 250, 0.28);
   border-radius: 12px;
@@ -88,6 +91,10 @@
   color: #f8fafc;
   font-weight: 700;
   cursor: pointer;
+}
+
+.settings-icon {
+  flex-shrink: 0;
 }
 
 .settings-panel {

@@ -12,7 +12,11 @@ const ensureSettingsFile = () => {
   fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
 
   if (!fs.existsSync(settingsFile)) {
-    fs.writeFileSync(settingsFile, JSON.stringify({ dataPath: '' }, null, 2), 'utf8');
+    fs.writeFileSync(
+      settingsFile,
+      JSON.stringify({ dataPath: '', password: '' }, null, 2),
+      'utf8',
+    );
   }
 };
 
@@ -23,10 +27,13 @@ const readSettings = () => {
     const content = fs.readFileSync(settingsFile, 'utf8');
     const parsed = JSON.parse(content);
 
-    return typeof parsed?.dataPath === 'string' ? parsed : { dataPath: '' };
+    return {
+      dataPath: typeof parsed?.dataPath === 'string' ? parsed.dataPath : '',
+      password: typeof parsed?.password === 'string' ? parsed.password : '',
+    };
   } catch (error) {
     console.warn('Unable to read spare-parts settings; using defaults.', error);
-    return { dataPath: '' };
+    return { dataPath: '', password: '' };
   }
 };
 
@@ -191,16 +198,22 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 app.get('/api/config', (_req, res) => {
-  res.json({ dataPath: readSettings().dataPath || path.join(__dirname, 'data', 'spare-parts.csv') });
+  const settings = readSettings();
+
+  res.json({
+    dataPath: settings.dataPath || path.join(__dirname, 'data', 'spare-parts.csv'),
+    password: settings.password || '',
+  });
 });
 
 app.put('/api/config', (req, res) => {
   const incomingPath = typeof req.body?.dataPath === 'string' ? req.body.dataPath.trim() : '';
-  const nextSettings = { dataPath: incomingPath };
+  const incomingPassword = typeof req.body?.password === 'string' ? req.body.password : '';
+  const nextSettings = { dataPath: incomingPath, password: incomingPassword };
   saveSettings(nextSettings);
   dataFile = resolveDataFile();
   ensureFile();
-  res.json({ dataPath: dataFile });
+  res.json({ dataPath: dataFile, password: incomingPassword });
 });
 
 app.get('/api/parts', (_req, res) => {

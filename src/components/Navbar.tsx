@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Cog } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { getActionPassword } from "../services/actionAuthorization";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
@@ -12,6 +14,7 @@ const navItems = [
 export default function Navbar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [dataPath, setDataPath] = useState("");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -25,6 +28,7 @@ export default function Navbar() {
 
         const config = await response.json();
         setDataPath(config.dataPath || "");
+        setPassword(config.password || "");
       } catch (error) {
         console.warn("Unable to load database settings:", error);
       }
@@ -33,6 +37,68 @@ export default function Navbar() {
     void loadSettings();
   }, []);
 
+  const handleOpenSettings = async () => {
+    const actionPassword = await getActionPassword();
+
+    const enteredPassword = await new Promise<string | null>((resolve) => {
+      const dialog = document.createElement("dialog");
+      dialog.style.padding = "1.5rem";
+      dialog.style.border = "1px solid #d1d5db";
+      dialog.style.borderRadius = "0.5rem";
+      dialog.innerHTML = `
+        <form method="dialog">
+          <h2>Open settings</h2>
+          <label>
+            Password
+            <input type="password" name="password" autocomplete="current-password" autofocus />
+          </label>
+          <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+            <button type="button" data-cancel>Cancel</button>
+            <button type="submit">Continue</button>
+          </div>
+        </form>
+      `;
+
+      const form = dialog.querySelector("form");
+      const passwordInput = dialog.querySelector<HTMLInputElement>('input[name="password"]');
+
+      const finish = (value: string | null) => {
+        dialog.close();
+        dialog.remove();
+        resolve(value);
+      };
+
+      form?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        finish(passwordInput?.value ?? "");
+      });
+
+      dialog.querySelector("[data-cancel]")?.addEventListener("click", () => {
+        finish(null);
+      });
+
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        finish(null);
+      });
+
+      document.body.append(dialog);
+      dialog.showModal();
+      passwordInput?.focus();
+    });
+
+    if (enteredPassword === null) {
+      return;
+    }
+
+    if (enteredPassword !== actionPassword) {
+      window.alert("Incorrect password.");
+      return;
+    }
+
+    setIsSettingsOpen(true);
+  };
+
   const handleSave = async () => {
     try {
       const response = await fetch("/api/config", {
@@ -40,7 +106,7 @@ export default function Navbar() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ dataPath }),
+        body: JSON.stringify({ dataPath, password }),
       });
 
       if (!response.ok) {
@@ -48,11 +114,12 @@ export default function Navbar() {
       }
 
       const config = await response.json();
-      setStatus(`Database path saved: ${config.dataPath}`);
-      setDataPath(config.dataPath);
+      setStatus("Settings saved successfully.");
+      setDataPath(config.dataPath || dataPath);
+      setPassword(config.password || password);
     } catch (error) {
       console.error(error);
-      setStatus("Unable to save database path.");
+      setStatus("Unable to save settings.");
     }
   };
 
@@ -83,9 +150,11 @@ export default function Navbar() {
           <button
             type="button"
             className="settings-button"
-            onClick={() => setIsSettingsOpen((current) => !current)}
+            onClick={handleOpenSettings}
+            aria-label="Open settings"
+            title="Settings"
           >
-            Settings
+            <Cog size={18} className="settings-icon" />
           </button>
         </div>
       </div>
@@ -102,6 +171,20 @@ export default function Navbar() {
             onChange={(event) => setDataPath(event.target.value)}
             placeholder="C:/path/to/spare-parts.csv"
           />
+
+          <label className="settings-label" htmlFor="settings-password">
+            Password
+          </label>
+          <input
+            id="settings-password"
+            type="password"
+            className="settings-input"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter password"
+            autoComplete="current-password"
+          />
+
           <div className="settings-actions">
             <button type="button" className="primary-button small-button" onClick={handleSave}>
               Save

@@ -32,7 +32,8 @@ export default function SpareParts() {
         (part.machine || "").toLowerCase().includes(query) ||
         (part.machineCode || "").toLowerCase().includes(query) ||
         (part.partNumber || "").toLowerCase().includes(query) ||
-        (part.partName || "").toLowerCase().includes(query)
+        (part.partName || "").toLowerCase().includes(query) ||
+        (part.category || "").toLowerCase().includes(query)
       );
     });
   }, [parts, search]);
