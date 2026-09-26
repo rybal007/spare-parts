@@ -128,3 +128,4 @@ export const authorizeProtectedAction = async (
     passwordInput?.focus();
   });
 };
+

@@ -1,11 +1,13 @@
 import { useState } from "react";
 
+import SparePartCard from "../components/SparePartCard";
 import { useSparePartStore } from "../store/sparePartStore";
 
 type AlertKey = "critical" | "watch" | "healthy" | null;
 
 export default function Dashboard() {
   const parts = useSparePartStore((s) => s.parts);
+  const deletePart = useSparePartStore((s) => s.deletePart);
   const [selectedAlert, setSelectedAlert] = useState<AlertKey>("critical");
 
   const criticalItems = parts.filter((p) => p.quantity === 0);
@@ -54,6 +56,27 @@ export default function Dashboard() {
           <span className="label">Total units</span>
           <h2>{totalQuantity}</h2>
         </div>
+      </section>
+
+      <section className="panel summary-panel">
+        <div className="page-toolbar">
+          <h2>Critical items</h2>
+          <span className="status-pill">{criticalItems.length} out of stock</span>
+        </div>
+
+        {criticalItems.length > 0 ? (
+          <div className="content-grid">
+            {criticalItems.map((part) => (
+              <SparePartCard
+                key={part.id}
+                part={part}
+                onDelete={deletePart}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">No critical items right now.</div>
+        )}
       </section>
 
       <section className="panel summary-panel">
