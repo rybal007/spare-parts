@@ -2,6 +2,7 @@ import type { SparePart } from "../types/SparePart";
 
 const STORAGE_KEY = "spareParts";
 const API_URL = "/api/parts";
+const LOAD_RETRY_DELAYS = [250, 500, 1000, 2000];
 
 const readFallbackParts = (): SparePart[] => {
   const data = localStorage.getItem(STORAGE_KEY);
@@ -27,22 +28,38 @@ export const saveParts = (parts: SparePart[]): void => {
 };
 
 export const loadParts = async (): Promise<SparePart[]> => {
-  try {
-    const response = await fetch(API_URL, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
+  for (let attempt = 0; attempt <= LOAD_RETRY_DELAYS.length; attempt += 1) {
+    try {
+      const response = await fetch(API_URL, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
+      if (!response.ok && response.status < 500 && response.status !== 408 && response.status !== 429) {
+        console.warn(
+          "Falling back to localStorage for spare-part data:",
+          `Request failed with status ${response.status}`
+        );
+        return readFallbackParts();
+      }
+
+      if (!response.ok) {
+        throw new Error(`Temporary server error: ${response.status}`);
+      }
+
+      return (await response.json()) as SparePart[];
+    } catch (error) {
+      if (attempt === LOAD_RETRY_DELAYS.length) {
+        console.warn("Falling back to localStorage for spare-part data:", error);
+        return readFallbackParts();
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, LOAD_RETRY_DELAYS[attempt]));
     }
-
-    return (await response.json()) as SparePart[];
-  } catch (error) {
-    console.warn("Falling back to localStorage for spare-part data:", error);
-    return readFallbackParts();
   }
+
+  return readFallbackParts();
 };
 
 export const addPartToStorage = async (part: SparePart): Promise<SparePart> => {

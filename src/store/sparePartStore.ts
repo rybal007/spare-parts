@@ -10,6 +10,7 @@ import {
 
 interface Store {
   parts: SparePart[];
+  isLoading: boolean;
   initialize: () => Promise<void>;
   addPart: (part: SparePart) => Promise<void>;
   deletePart: (id: string) => Promise<void>;
@@ -27,10 +28,16 @@ const normalizeParts = (parts: SparePart[]): SparePart[] =>
 
 export const useSparePartStore = create<Store>((set) => ({
   parts: [],
+  isLoading: true,
 
   initialize: async () => {
-    const storedParts = normalizeParts(await loadParts());
-    set({ parts: storedParts });
+    set({ isLoading: true });
+    try {
+      const storedParts = normalizeParts(await loadParts());
+      set({ parts: storedParts });
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
   addPart: async (part) => {
