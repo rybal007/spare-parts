@@ -236,7 +236,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
             title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDarkMode ? <SunMedium size={18} /> : <MoonStar size={18} />}
-            <span>{isDarkMode ? "Light" : "Dark"}</span>
           </button>
 
           <button
