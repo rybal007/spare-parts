@@ -23,11 +23,29 @@ const saveFallbackParts = (parts: SparePart[]): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(parts));
 };
 
+const isApiAvailable = async (): Promise<boolean> => {
+  try {
+    const response = await fetch("/api/config", {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 export const saveParts = (parts: SparePart[]): void => {
   saveFallbackParts(parts);
 };
 
 export const loadParts = async (): Promise<SparePart[]> => {
+  if (!(await isApiAvailable())) {
+    return readFallbackParts();
+  }
+
   for (let attempt = 0; attempt <= LOAD_RETRY_DELAYS.length; attempt += 1) {
     try {
       const response = await fetch(API_URL, {
@@ -37,10 +55,6 @@ export const loadParts = async (): Promise<SparePart[]> => {
       });
 
       if (!response.ok && response.status < 500 && response.status !== 408 && response.status !== 429) {
-        console.warn(
-          "Falling back to localStorage for spare-part data:",
-          `Request failed with status ${response.status}`
-        );
         return readFallbackParts();
       }
 
@@ -49,9 +63,8 @@ export const loadParts = async (): Promise<SparePart[]> => {
       }
 
       return (await response.json()) as SparePart[];
-    } catch (error) {
+    } catch { 
       if (attempt === LOAD_RETRY_DELAYS.length) {
-        console.warn("Falling back to localStorage for spare-part data:", error);
         return readFallbackParts();
       }
 
@@ -63,6 +76,13 @@ export const loadParts = async (): Promise<SparePart[]> => {
 };
 
 export const addPartToStorage = async (part: SparePart): Promise<SparePart> => {
+  if (!(await isApiAvailable())) {
+    const parts = readFallbackParts();
+    const updatedParts = [...parts, part];
+    saveFallbackParts(updatedParts);
+    return part;
+  }
+
   try {
     const response = await fetch(API_URL, {
       method: "POST",
@@ -77,8 +97,7 @@ export const addPartToStorage = async (part: SparePart): Promise<SparePart> => {
     }
 
     return (await response.json()) as SparePart;
-  } catch (error) {
-    console.warn("API save failed; storing locally instead:", error);
+  } catch {
     const parts = readFallbackParts();
     const updatedParts = [...parts, part];
     saveFallbackParts(updatedParts);
@@ -87,6 +106,12 @@ export const addPartToStorage = async (part: SparePart): Promise<SparePart> => {
 };
 
 export const deletePartFromStorage = async (id: string): Promise<void> => {
+  if (!(await isApiAvailable())) {
+    const parts = readFallbackParts();
+    saveFallbackParts(parts.filter((part) => part.id !== id));
+    return;
+  }
+
   try {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
@@ -95,14 +120,22 @@ export const deletePartFromStorage = async (id: string): Promise<void> => {
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`);
     }
-  } catch (error) {
-    console.warn("API delete failed; removing locally instead:", error);
+  } catch {
     const parts = readFallbackParts();
     saveFallbackParts(parts.filter((part) => part.id !== id));
   }
 };
 
 export const updatePartInStorage = async (updatedPart: SparePart): Promise<SparePart> => {
+  if (!(await isApiAvailable())) {
+    const parts = readFallbackParts();
+    const updatedParts = parts.map((part) =>
+      part.id === updatedPart.id ? updatedPart : part
+    );
+    saveFallbackParts(updatedParts);
+    return updatedPart;
+  }
+
   try {
     const response = await fetch(`${API_URL}/${updatedPart.id}`, {
       method: "PUT",
@@ -117,8 +150,7 @@ export const updatePartInStorage = async (updatedPart: SparePart): Promise<Spare
     }
 
     return (await response.json()) as SparePart;
-  } catch (error) {
-    console.warn("API update failed; saving locally instead:", error);
+  } catch {
     const parts = readFallbackParts();
     const updatedParts = parts.map((part) =>
       part.id === updatedPart.id ? updatedPart : part

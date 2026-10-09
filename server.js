@@ -3,10 +3,25 @@ import cors from 'cors';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as XLSX from 'xlsx';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const settingsFile = path.join(__dirname, 'data', 'spare-parts-settings.json');
+const fields = [
+  'id',
+  'machine',
+  'machineCode',
+  'partNumber',
+  'partName',
+  'category',
+  'quantity',
+  'minStock',
+  'supplier',
+  'image',
+  'createdAt',
+  'updatedAt',
+];
 
 const ensureSettingsFile = () => {
   fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
@@ -55,33 +70,51 @@ const resolveDataFile = () => {
 
   const hasFileExtension = path.extname(resolvedPath) !== '';
 
-  return hasFileExtension ? resolvedPath : path.join(resolvedPath, 'spare-parts.csv');
+  if (hasFileExtension) {
+    return resolvedPath;
+  }
+
+  const candidateFiles = [
+    path.join(resolvedPath, 'spare-parts.csv'),
+    path.join(resolvedPath, 'spare-parts.xlsx'),
+    path.join(resolvedPath, 'spare-parts.xls'),
+  ];
+
+  for (const candidateFile of candidateFiles) {
+    if (fs.existsSync(candidateFile)) {
+      return candidateFile;
+    }
+  }
+
+  return path.join(resolvedPath, 'spare-parts.csv');
 };
 
-let dataFile = resolveDataFile();
-const dataDir = path.dirname(dataFile);
-const fields = [
-  'id',
-  'machine',
-  'machineCode',
-  'partNumber',
-  'partName',
-  'category',
-  'quantity',
-  'minStock',
-  'supplier',
-  'image',
-  'createdAt',
-  'updatedAt',
-];
+const ensureDirectories = (targetPath) => {
+  const directory = path.dirname(targetPath);
+  fs.mkdirSync(directory, { recursive: true });
+};
 
-const ensureFile = () => {
-  dataFile = resolveDataFile();
-  fs.mkdirSync(path.dirname(dataFile), { recursive: true });
+const ensureFile = (targetPath = resolveDataFile()) => {
+  ensureDirectories(targetPath);
 
-  if (!fs.existsSync(dataFile)) {
-    fs.writeFileSync(dataFile, `${fields.join(',')}\n`, 'utf8');
+  if (fs.existsSync(targetPath)) {
+    return targetPath;
   }
+
+  const extension = path.extname(targetPath).toLowerCase();
+
+  if (extension === '.xlsx' || extension === '.xls') {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet([
+      Object.fromEntries(fields.map((field) => [field, ''])),
+    ]);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    XLSX.writeFile(workbook, targetPath);
+    return targetPath;
+  }
+
+  fs.writeFileSync(targetPath, `${fields.join(',')}\n`, 'utf8');
+  return targetPath;
 };
 
 const escapeCsvValue = (value) => {
@@ -129,10 +162,8 @@ const parseCsvLine = (line) => {
   return values;
 };
 
-const readParts = () => {
-  ensureFile();
-
-  const csv = fs.readFileSync(dataFile, 'utf8').trim();
+const readCsvRows = (csvPath) => {
+  const csv = fs.readFileSync(csvPath, 'utf8').trim();
 
   if (!csv) {
     return [];
@@ -150,25 +181,79 @@ const readParts = () => {
       record[header] = values[index] ?? '';
     });
 
-    return {
-      id: record.id || '',
-      machine: record.machine || '',
-      machineCode: record.machineCode || '',
-      partNumber: record.partNumber || '',
-      partName: record.partName || '',
-      category: record.category || '',
-      quantity: Number(record.quantity || 0),
-      minStock: Number(record.minStock || 0),
-      supplier: record.supplier || '',
-      image: record.image || '',
-      createdAt: record.createdAt || new Date().toISOString(),
-      updatedAt: record.updatedAt || new Date().toISOString(),
-    };
+    return record;
   });
 };
 
+const readExcelRows = (excelPath) => {
+  const workbook = XLSX.readFile(excelPath);
+  const [sheetName] = workbook.SheetNames;
+  const worksheet = workbook.Sheets[sheetName];
+
+  if (!worksheet) {
+    return [];
+  }
+
+  const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+  return rows.map((row) => {
+    const record = {};
+
+    fields.forEach((field) => {
+      const value = row[field] ?? row[field.toLowerCase()] ?? row[field.toUpperCase()] ?? '';
+      record[field] = value;
+    });
+
+    return record;
+  });
+};
+
+const normalizeRecord = (record = {}) => ({
+  id: record.id || '',
+  machine: record.machine || '',
+  machineCode: record.machineCode || '',
+  partNumber: record.partNumber || '',
+  partName: record.partName || '',
+  category: record.category || '',
+  quantity: Number(record.quantity || 0),
+  minStock: Number(record.minStock || 0),
+  supplier: record.supplier || '',
+  image: record.image || '',
+  createdAt: record.createdAt || new Date().toISOString(),
+  updatedAt: record.updatedAt || new Date().toISOString(),
+});
+
+const readParts = () => {
+  const targetPath = resolveDataFile();
+  ensureFile(targetPath);
+
+  const extension = path.extname(targetPath).toLowerCase();
+  const rows = extension === '.xlsx' || extension === '.xls'
+    ? readExcelRows(targetPath)
+    : readCsvRows(targetPath);
+
+  return rows.map((record) => normalizeRecord(record));
+};
+
 const writeParts = (parts) => {
-  ensureFile();
+  const targetPath = resolveDataFile();
+  ensureFile(targetPath);
+
+  const extension = path.extname(targetPath).toLowerCase();
+
+  if (extension === '.xlsx' || extension === '.xls') {
+    const workbook = XLSX.utils.book_new();
+    const sheetData = parts.map((part) =>
+      fields.reduce((row, field) => {
+        row[field] = part[field] ?? '';
+        return row;
+      }, {})
+    );
+    const worksheet = XLSX.utils.json_to_sheet(sheetData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    XLSX.writeFile(workbook, targetPath);
+    return;
+  }
 
   const csvContent = [
     fields.join(','),
@@ -179,7 +264,7 @@ const writeParts = (parts) => {
     ),
   ].join('\n');
 
-  fs.writeFileSync(dataFile, `${csvContent}\n`, 'utf8');
+  fs.writeFileSync(targetPath, `${csvContent}\n`, 'utf8');
 };
 
 const normalizePart = (part) => ({
@@ -199,9 +284,10 @@ app.use(express.json({ limit: '10mb' }));
 
 app.get('/api/config', (_req, res) => {
   const settings = readSettings();
+  const resolvedPath = resolveDataFile();
 
   res.json({
-    dataPath: settings.dataPath || path.join(__dirname, 'data', 'spare-parts.csv'),
+    dataPath: settings.dataPath || resolvedPath,
     password: settings.password || '',
   });
 });
@@ -211,9 +297,9 @@ app.put('/api/config', (req, res) => {
   const incomingPassword = typeof req.body?.password === 'string' ? req.body.password : '';
   const nextSettings = { dataPath: incomingPath, password: incomingPassword };
   saveSettings(nextSettings);
-  dataFile = resolveDataFile();
-  ensureFile();
-  res.json({ dataPath: dataFile, password: incomingPassword });
+  const resolvedPath = resolveDataFile();
+  ensureFile(resolvedPath);
+  res.json({ dataPath: resolvedPath, password: incomingPassword });
 });
 
 app.get('/api/parts', (_req, res) => {
@@ -256,5 +342,5 @@ app.delete('/api/parts/:id', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Spare-parts CSV server running on http://localhost:${port}`);
+  console.log(`Spare-parts database server running on http://localhost:${port}`);
 });

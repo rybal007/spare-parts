@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -10,11 +11,23 @@ import { useSparePartStore } from "./store/sparePartStore";
 
 function App() {
   const isLoading = useSparePartStore((state) => state.isLoading);
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const savedTheme = window.localStorage.getItem("spare-parts-theme");
+    return savedTheme === "dark" ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("spare-parts-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
 
   return (
     <BrowserRouter>
-      <div className="app-shell">
-        <Navbar />
+      <div className="app-shell" data-theme={theme}>
+        <Navbar theme={theme} onToggleTheme={toggleTheme} />
 
         <main className="page-content">
           {isLoading ? (
